@@ -1,0 +1,96 @@
+{% extends 'base.html' %}
+{% block title %}Check-in{% endblock %}
+
+{% block content %}
+<div class="container">
+  <h1 class="mb-4"><i class="bi bi-qr-code-scan"></i> Check-in de Entradas</h1>
+
+  {# Buscador de codigo #}
+  <div class="row justify-content-center mb-4">
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <form method="get" class="d-flex gap-2">
+            <input type="text" name="code" value="{{ code }}" class="form-control form-control-lg"
+                   placeholder="Pegar o escanear codigo de entrada..." autofocus>
+            <button type="submit" class="btn btn-primary btn-lg">
+              <i class="bi bi-search"></i>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  {# Resultado #}
+  {% if code %}
+    {% if ticket %}
+    <div class="row justify-content-center">
+      <div class="col-md-6">
+        <div class="card border-0 shadow
+          {% if ticket.status == 'confirmed' %}border-success{% elif ticket.status == 'used' %}border-secondary{% else %}border-danger{% endif %}">
+
+          {# Header de estado #}
+          <div class="card-header text-center py-3
+            {% if ticket.status == 'confirmed' %}bg-success text-white
+            {% elif ticket.status == 'used' %}bg-secondary text-white
+            {% else %}bg-danger text-white{% endif %}">
+            {% if ticket.status == 'confirmed' %}
+              <i class="bi bi-check-circle-fill fs-1"></i>
+              <h4 class="mb-0 mt-1">ENTRADA VALIDA</h4>
+            {% elif ticket.status == 'used' %}
+              <i class="bi bi-x-circle-fill fs-1"></i>
+              <h4 class="mb-0 mt-1">YA FUE UTILIZADA</h4>
+            {% else %}
+              <i class="bi bi-slash-circle-fill fs-1"></i>
+              <h4 class="mb-0 mt-1">ENTRADA {{ ticket.get_status_display|upper }}</h4>
+            {% endif %}
+          </div>
+
+          <div class="card-body p-4">
+            <table class="table table-borderless mb-0">
+              <tr><th class="text-muted fw-normal">Evento</th><td class="fw-bold">{{ ticket.ticket_type.event.name }}</td></tr>
+              <tr><th class="text-muted fw-normal">Tipo</th><td>{{ ticket.ticket_type.name }}</td></tr>
+              <tr><th class="text-muted fw-normal">Comprador</th><td class="fw-bold">{{ ticket.buyer_name }}</td></tr>
+              <tr><th class="text-muted fw-normal">Email</th><td>{{ ticket.buyer_email }}</td></tr>
+              <tr><th class="text-muted fw-normal">Cantidad</th><td><strong>{{ ticket.quantity }} entrada{% if ticket.quantity > 1 %}s{% endif %}</strong></td></tr>
+              <tr><th class="text-muted fw-normal">Total</th><td>${{ ticket.total }}</td></tr>
+              <tr><th class="text-muted fw-normal">Comprada</th><td>{{ ticket.created_at|date:"d/m/Y H:i" }}</td></tr>
+            </table>
+          </div>
+
+          {% if ticket.status == 'confirmed' %}
+          <div class="card-footer">
+            <form method="post" class="d-flex gap-2">
+              {% csrf_token %}
+              <input type="hidden" name="ticket_pk" value="{{ ticket.pk }}">
+              <button name="action" value="use" class="btn btn-success flex-grow-1 btn-lg"
+                      onclick="return confirm('Confirmar ingreso de {{ ticket.buyer_name }}?')">
+                <i class="bi bi-check-lg"></i> Confirmar ingreso
+              </button>
+              <button name="action" value="cancel" class="btn btn-outline-danger"
+                      onclick="return confirm('Cancelar esta entrada?')">
+                <i class="bi bi-x-lg"></i>
+              </button>
+            </form>
+          </div>
+          {% endif %}
+
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  {% endif %}
+
+  {# Instrucciones si no hay busqueda #}
+  {% if not code %}
+  <div class="row justify-content-center">
+    <div class="col-md-6 text-center text-muted">
+      <i class="bi bi-qr-code" style="font-size:5rem;opacity:.3;"></i>
+      <p class="mt-3">Ingresa el codigo UUID de la entrada o escanea el QR con un lector conectado al teclado.</p>
+    </div>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

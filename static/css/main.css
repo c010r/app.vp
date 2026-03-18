@@ -1,0 +1,43 @@
+body {
+  background-color: #f5f6fa;
+}
+
+.navbar {
+  box-shadow: 0 2px 8px rgba(0,0,0,.2);
+}
+
+.card {
+  border-radius: .75rem;
+  border: 1px solid rgba(0,0,0,.08);
+  box-shadow: 0 1px 4px rgba(0,0,0,.06);
+}
+
+.card-header {
+  border-radius: .75rem .75rem 0 0 !important;
+}
+
+.hover-card {
+  transition: transform .15s ease, box-shadow .15s ease;
+}
+.hover-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(0,0,0,.12);
+}
+
+/* POS grid */
+.product-item button {
+  min-height: 80px;
+  transition: background-color .1s;
+}
+.product-item button:hover {
+  background-color: #e8f0fe !important;
+}
+
+/* Tabla sticky */
+.sticky-top { position: sticky; top: 0; z-index: 1; }
+
+/* Alertas con colores correctos de Bootstrap */
+.alert-success { --bs-alert-color: #0f5132; --bs-alert-bg: #d1e7dd; }
+.alert-danger  { --bs-alert-color: #842029; --bs-alert-bg: #f8d7da; }
+.alert-warning { --bs-alert-color: #664d03; --bs-alert-bg: #fff3cd; }
+.alert-info    { --bs-alert-color: #055160; --bs-alert-bg: #cff4fc; }

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Panel de Barra{% endblock %}
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-cup-straw"></i> Panel de Barra</h1>
+
+<div class="row g-4">
+  {% for register in registers %}
+  <div class="col-md-4">
+    <div class="card h-100 {% if register.current_session %}border-success{% else %}border-secondary{% endif %}">
+      <div class="card-header d-flex justify-content-between align-items-center
+        {% if register.current_session %}bg-success text-white{% else %}bg-secondary text-white{% endif %}">
+        <h5 class="mb-0"><i class="bi bi-cash-register"></i> {{ register.name }}</h5>
+        {% if register.current_session %}
+        <span class="badge bg-light text-success">ABIERTA</span>
+        {% else %}
+        <span class="badge bg-light text-secondary">CERRADA</span>
+        {% endif %}
+      </div>
+      <div class="card-body text-center">
+        {% if register.location %}
+        <p class="text-muted"><i class="bi bi-geo-alt"></i> {{ register.location }}</p>
+        {% endif %}
+
+        {% if register.current_session %}
+        {% with s=register.current_session %}
+        <p class="mb-1">Abierta por: <strong>{{ s.opened_by.get_full_name|default:s.opened_by.username }}</strong></p>
+        <p class="text-muted small">{{ s.opened_at|date:"d/m/Y H:i" }}</p>
+        <p class="mb-3">Ventas: <strong class="text-success">${{ s.total_sales }}</strong></p>
+        <div class="d-grid gap-2">
+          <a href="{% url 'bar:pos' s.pk %}" class="btn btn-success">
+            <i class="bi bi-cart"></i> Ir al POS
+          </a>
+          <a href="{% url 'bar:close_session' s.pk %}" class="btn btn-outline-danger">
+            <i class="bi bi-lock"></i> Cerrar caja
+          </a>
+        </div>
+        {% endwith %}
+        {% else %}
+        <div class="py-3">
+          <i class="bi bi-lock text-muted" style="font-size:2.5rem;"></i>
+          <p class="text-muted mt-2">Caja cerrada</p>
+        </div>
+        <a href="{% url 'bar:open_session' register.pk %}" class="btn btn-primary w-100">
+          <i class="bi bi-unlock"></i> Abrir caja
+        </a>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="col-12 text-center">
+    <p class="text-muted">No hay cajas configuradas. Creá una desde el panel de administración.</p>
+  </div>
+  {% endfor %}
+</div>
+
+{% if open_sessions %}
+<div class="mt-5">
+  <h4><i class="bi bi-clock-history"></i> Sesiones abiertas</h4>
+  <div class="table-responsive">
+    <table class="table table-sm">
+      <thead><tr><th>Caja</th><th>Operador</th><th>Apertura</th><th>Ventas</th><th></th></tr></thead>
+      <tbody>
+        {% for s in open_sessions %}
+        <tr>
+          <td>{{ s.register }}</td>
+          <td>{{ s.opened_by.get_full_name|default:s.opened_by.username }}</td>
+          <td>{{ s.opened_at|date:"d/m H:i" }}</td>
+          <td><strong>${{ s.total_sales }}</strong></td>
+          <td>
+            <a href="{% url 'bar:pos' s.pk %}" class="btn btn-sm btn-success">POS</a>
+            <a href="{% url 'bar:close_session' s.pk %}" class="btn btn-sm btn-outline-danger">Cerrar</a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,138 @@
+{% extends 'base.html' %}
+{% block title %}{{ event.name }} — Admin{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <div>
+    <a href="{% url 'tickets:admin_list' %}" class="btn btn-outline-secondary btn-sm mb-2">
+      <i class="bi bi-arrow-left"></i> Eventos
+    </a>
+    <h1 class="mb-0">{{ event.name }}</h1>
+    <p class="text-muted">
+      <i class="bi bi-calendar3"></i> {{ event.date|date:"d/m/Y H:i" }}
+      | <i class="bi bi-geo-alt"></i> {{ event.venue }}
+    </p>
+  </div>
+  <div class="d-flex gap-2">
+    <a href="{% url 'tickets:ticket_type_create' event.pk %}" class="btn btn-success">
+      <i class="bi bi-plus"></i> Tipo de entrada
+    </a>
+    <a href="{% url 'tickets:event_edit' event.pk %}" class="btn btn-outline-primary">
+      <i class="bi bi-pencil"></i> Editar evento
+    </a>
+  </div>
+</div>
+
+{# KPIs del evento #}
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card bg-primary text-white text-center">
+      <div class="card-body">
+        <h6>Ingresos totales</h6>
+        <h2 class="fw-bold">${{ total_revenue|floatformat:2 }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card text-center">
+      <div class="card-body">
+        <h6 class="text-muted">Entradas vendidas</h6>
+        <h2 class="fw-bold">{{ total_sold }}</h2>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-body d-flex gap-2 align-items-center">
+        <a href="{% url 'tickets:admin_ticket_list' %}?event={{ event.pk }}" class="btn btn-outline-primary">
+          <i class="bi bi-list-ul"></i> Ver todas las entradas
+        </a>
+        <a href="{% url 'tickets:checkin' %}" class="btn btn-outline-success">
+          <i class="bi bi-qr-code-scan"></i> Ir al Check-in
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+{# Tipos de entrada #}
+<div class="card mb-4">
+  <div class="card-header d-flex justify-content-between align-items-center">
+    <h5 class="mb-0">Tipos de entrada</h5>
+  </div>
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-dark">
+        <tr><th>Tipo</th><th>Precio</th><th>Vendidas</th><th>Capacidad</th><th>Disponibles</th><th>Ingresos</th><th></th></tr>
+      </thead>
+      <tbody>
+        {% for tt in ticket_types %}
+        <tr class="{% if tt.is_sold_out %}table-danger{% endif %}">
+          <td>
+            <strong>{{ tt.name }}</strong>
+            {% if not tt.is_active %}<span class="badge bg-secondary ms-1">Inactivo</span>{% endif %}
+          </td>
+          <td>${{ tt.price }}</td>
+          <td>
+            <div class="d-flex align-items-center gap-2">
+              <strong>{{ tt.sold }}</strong>
+              <div class="progress flex-grow-1" style="height:8px;min-width:80px;">
+                <div class="progress-bar bg-success" style="width:{% widthratio tt.sold tt.capacity 100 %}%"></div>
+              </div>
+            </div>
+          </td>
+          <td>{{ tt.capacity }}</td>
+          <td>
+            {% if tt.is_sold_out %}
+              <span class="badge bg-danger">Agotado</span>
+            {% else %}
+              <span class="badge bg-success">{{ tt.available }}</span>
+            {% endif %}
+          </td>
+          <td><strong>${{ tt.revenue|default:"0"|floatformat:2 }}</strong></td>
+          <td>
+            <a href="{% url 'tickets:ticket_type_edit' tt.pk %}" class="btn btn-sm btn-outline-primary">
+              <i class="bi bi-pencil"></i>
+            </a>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+{# Ultimas ventas #}
+<div class="card">
+  <div class="card-header"><h5 class="mb-0">Ultimas compras</h5></div>
+  <div class="table-responsive">
+    <table class="table table-sm mb-0">
+      <thead class="table-dark">
+        <tr><th>Fecha</th><th>Comprador</th><th>Tipo</th><th>Cant.</th><th>Total</th><th>Estado</th></tr>
+      </thead>
+      <tbody>
+        {% for t in recent_tickets %}
+        <tr>
+          <td><small>{{ t.created_at|date:"d/m/Y H:i" }}</small></td>
+          <td>
+            {{ t.buyer_name }}<br>
+            <small class="text-muted">{{ t.buyer_email }}</small>
+          </td>
+          <td>{{ t.ticket_type.name }}</td>
+          <td>{{ t.quantity }}</td>
+          <td><strong>${{ t.total }}</strong></td>
+          <td>
+            {% if t.status == 'confirmed' %}<span class="badge bg-success">Confirmada</span>
+            {% elif t.status == 'used' %}<span class="badge bg-secondary">Usada</span>
+            {% elif t.status == 'cancelled' %}<span class="badge bg-danger">Cancelada</span>
+            {% else %}<span class="badge bg-warning">Pendiente</span>{% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="6" class="text-center text-muted py-3">Sin ventas aun.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

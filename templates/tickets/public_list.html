@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+{% block title %}Eventos — App VP{% endblock %}
+
+{% block content %}
+<div class="bg-dark text-white rounded-3 py-5 text-center mb-5" style="background: linear-gradient(135deg,#1a1a2e,#16213e) !important;">
+  <div class="container">
+    <h1 class="display-5 fw-bold"><i class="bi bi-ticket-perforated"></i> Proximos Eventos</h1>
+    <p class="lead text-white-50">Compra tus entradas de forma rapida y segura</p>
+    {% if not user.is_authenticated %}
+    <div class="mt-3">
+      <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-lg me-2">
+        <i class="bi bi-person-plus"></i> Crear cuenta
+      </a>
+      <a href="{% url 'accounts:login' %}" class="btn btn-outline-light btn-lg">
+        <i class="bi bi-box-arrow-in-right"></i> Iniciar sesion
+      </a>
+    </div>
+    {% endif %}
+  </div>
+</div>
+
+<div class="container">
+  <div class="row g-4">
+    {% for event in events %}
+    <div class="col-md-6 col-lg-4">
+      <div class="card h-100 shadow-sm hover-card">
+        {% if event.image %}
+        <img src="{{ event.image.url }}" class="card-img-top" style="height:200px;object-fit:cover;" alt="{{ event.name }}">
+        {% else %}
+        <div class="d-flex align-items-center justify-content-center" style="height:200px;background:linear-gradient(135deg,#1a1a2e,#16213e);">
+          <i class="bi bi-music-note-beamed text-white" style="font-size:4rem;opacity:.4;"></i>
+        </div>
+        {% endif %}
+
+        <div class="card-body">
+          <h5 class="card-title fw-bold">{{ event.name }}</h5>
+          <p class="text-muted small mb-2">
+            <i class="bi bi-calendar3"></i> {{ event.date|date:"d/m/Y H:i" }}<br>
+            <i class="bi bi-geo-alt"></i> {{ event.venue }}
+          </p>
+          {% if event.description %}
+          <p class="card-text small text-muted">{{ event.description|truncatewords:20 }}</p>
+          {% endif %}
+
+          {# Tipos de entrada #}
+          {% for tt in event.ticket_types.all %}
+          {% if tt.is_active %}
+          <div class="d-flex justify-content-between align-items-center border rounded p-2 mb-2">
+            <div>
+              <div class="fw-semibold small">{{ tt.name }}</div>
+              <div class="text-success fw-bold">${{ tt.price }}</div>
+            </div>
+            <div class="text-end">
+              {% if tt.is_sold_out %}
+                <span class="badge bg-danger">Agotado</span>
+              {% elif user.is_authenticated %}
+                <small class="text-muted d-block">{{ tt.available }} disp.</small>
+                <a href="{% url 'tickets:purchase' tt.pk %}" class="btn btn-sm btn-primary mt-1">
+                  <i class="bi bi-cart-plus"></i> Comprar
+                </a>
+              {% else %}
+                <small class="text-muted d-block">{{ tt.available }} disp.</small>
+                <a href="{% url 'accounts:login' %}?next={% url 'tickets:purchase' tt.pk %}" class="btn btn-sm btn-outline-primary mt-1">
+                  Ingresar para comprar
+                </a>
+              {% endif %}
+            </div>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+
+        <div class="card-footer bg-transparent">
+          <a href="{% url 'tickets:public_event_detail' event.pk %}" class="btn btn-outline-secondary w-100 btn-sm">
+            Ver detalle del evento
+          </a>
+        </div>
+      </div>
+    </div>
+    {% empty %}
+    <div class="col-12 text-center py-5">
+      <i class="bi bi-calendar-x text-muted" style="font-size:4rem;"></i>
+      <h4 class="text-muted mt-3">No hay eventos disponibles por el momento</h4>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

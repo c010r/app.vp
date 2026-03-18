@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+{% block title %}Entrada — {{ ticket.ticket_type.event.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <a href="{% url 'tickets:my_tickets' %}" class="btn btn-outline-secondary btn-sm mb-4">
+    <i class="bi bi-arrow-left"></i> Mis entradas
+  </a>
+
+  <div class="row justify-content-center">
+    <div class="col-md-6">
+
+      {# Ticket estilo "boleto" #}
+      <div class="card shadow-lg border-0 overflow-hidden">
+        <div class="card-header text-white py-4 text-center" style="background:linear-gradient(135deg,#1a1a2e,#16213e);">
+          <i class="bi bi-gem fs-2"></i>
+          <h3 class="fw-bold mt-1 mb-0">App VP</h3>
+          <p class="mb-0 text-white-50 small">Entrada oficial</p>
+        </div>
+
+        <div class="card-body p-4">
+          <h4 class="fw-bold text-center mb-1">{{ ticket.ticket_type.event.name }}</h4>
+          <p class="text-center text-muted">
+            <i class="bi bi-tag"></i> {{ ticket.ticket_type.name }}
+          </p>
+
+          <hr>
+
+          <div class="row text-center mb-3">
+            <div class="col-6">
+              <div class="text-muted small">Fecha</div>
+              <strong>{{ ticket.ticket_type.event.date|date:"d/m/Y" }}</strong>
+            </div>
+            <div class="col-6">
+              <div class="text-muted small">Hora</div>
+              <strong>{{ ticket.ticket_type.event.date|date:"H:i" }} hs</strong>
+            </div>
+          </div>
+
+          <div class="text-center mb-3">
+            <div class="text-muted small">Lugar</div>
+            <strong>{{ ticket.ticket_type.event.venue }}</strong>
+          </div>
+
+          <hr>
+
+          <div class="row text-center mb-3">
+            <div class="col-6">
+              <div class="text-muted small">A nombre de</div>
+              <strong>{{ ticket.buyer_name }}</strong>
+            </div>
+            <div class="col-6">
+              <div class="text-muted small">Cantidad</div>
+              <strong class="fs-4">{{ ticket.quantity }}</strong>
+            </div>
+          </div>
+
+          <div class="text-center mb-3">
+            <div class="text-muted small">Total pagado</div>
+            <strong class="fs-3 text-success">${{ ticket.total }}</strong>
+          </div>
+
+          <hr>
+
+          {# QR Code #}
+          <div class="text-center">
+            {% if ticket.qr_image %}
+            <p class="text-muted small mb-2">Presentar este QR en el ingreso al evento</p>
+            <img src="{{ ticket.qr_image.url }}" alt="QR entrada" class="img-fluid" style="max-width:220px;">
+            {% endif %}
+
+            <div class="mt-3">
+              <div class="text-muted small mb-1">Codigo de entrada</div>
+              <code class="fs-6 text-dark bg-light p-2 rounded d-block">{{ ticket.code }}</code>
+            </div>
+          </div>
+
+          <hr>
+
+          {# Estado #}
+          <div class="text-center">
+            {% if ticket.status == 'confirmed' %}
+              <span class="badge bg-success fs-5 px-4 py-2">
+                <i class="bi bi-check-circle"></i> ENTRADA VALIDA
+              </span>
+            {% elif ticket.status == 'used' %}
+              <span class="badge bg-secondary fs-5 px-4 py-2">
+                <i class="bi bi-x-circle"></i> YA UTILIZADA
+              </span>
+            {% elif ticket.status == 'cancelled' %}
+              <span class="badge bg-danger fs-5 px-4 py-2">
+                <i class="bi bi-x-circle"></i> CANCELADA
+              </span>
+            {% endif %}
+          </div>
+        </div>
+
+        <div class="card-footer text-muted text-center small py-3">
+          Comprada el {{ ticket.created_at|date:"d/m/Y \a \l\a\s H:i" }} hs
+        </div>
+      </div>
+
+      {# Botón imprimir #}
+      <div class="text-center mt-3">
+        <button onclick="window.print()" class="btn btn-outline-secondary btn-sm">
+          <i class="bi bi-printer"></i> Imprimir entrada
+        </button>
+      </div>
+
+    </div>
+  </div>
+</div>
+{% endblock %}

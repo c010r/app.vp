@@ -1,0 +1,142 @@
+{% extends 'base.html' %}
+{% block title %}Reportes{% endblock %}
+
+{% block extra_css %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.3/dist/chart.umd.min.js"></script>
+{% endblock %}
+
+{% block content %}
+<h1 class="mb-4"><i class="bi bi-bar-chart-line"></i> Reportería</h1>
+
+<!-- KPIs del día -->
+<div class="row g-3 mb-4">
+  <div class="col-md-3">
+    <div class="card bg-primary text-white">
+      <div class="card-body text-center">
+        <h6>Ingresos hoy — Entradas</h6>
+        <h2 class="fw-bold">${{ tickets_today.revenue|default:"0"|floatformat:2 }}</h2>
+        <small>{{ tickets_today.count|default:"0" }} transacciones</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-success text-white">
+      <div class="card-body text-center">
+        <h6>Ingresos hoy — Barra</h6>
+        <h2 class="fw-bold">${{ bar_today.revenue|default:"0"|floatformat:2 }}</h2>
+        <small>{{ bar_today.count|default:"0" }} ventas</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card {% if low_stock_count > 0 %}bg-warning{% else %}bg-light{% endif %}">
+      <div class="card-body text-center">
+        <h6>Productos con stock bajo</h6>
+        <h2 class="fw-bold">{{ low_stock_count }}</h2>
+        <a href="{% url 'inventory:product_list' %}?low_stock=1" class="btn btn-sm btn-outline-dark">Ver</a>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="card bg-light">
+      <div class="card-body text-center">
+        <h6>Accesos rápidos</h6>
+        <div class="d-grid gap-1 mt-2">
+          <a href="{% url 'reports:tickets' %}" class="btn btn-sm btn-outline-primary">Reporte Entradas</a>
+          <a href="{% url 'reports:bar' %}" class="btn btn-sm btn-outline-success">Reporte Barra</a>
+          <a href="{% url 'reports:inventory' %}" class="btn btn-sm btn-outline-secondary">Reporte Inventario</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Gráficos -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><h6 class="mb-0">Ventas de Entradas — últimos 7 días</h6></div>
+      <div class="card-body"><canvas id="ticketsChart" height="200"></canvas></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><h6 class="mb-0">Ventas de Barra — últimos 7 días</h6></div>
+      <div class="card-body"><canvas id="barChart" height="200"></canvas></div>
+    </div>
+  </div>
+</div>
+
+<!-- Top productos y eventos -->
+<div class="row g-3">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><h6 class="mb-0">Top Productos de Barra (30 días)</h6></div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Producto</th><th>Unidades</th><th>Ingreso</th></tr></thead>
+          <tbody>
+            {% for p in top_bar_products %}
+            <tr>
+              <td>{{ p.product__name }}</td>
+              <td>{{ p.total_qty }}</td>
+              <td><strong>${{ p.total_revenue|floatformat:2 }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-muted text-center py-3">Sin datos</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header"><h6 class="mb-0">Top Eventos por Ingresos</h6></div>
+      <div class="table-responsive">
+        <table class="table table-sm mb-0">
+          <thead><tr><th>Evento</th><th>Entradas</th><th>Ingreso</th></tr></thead>
+          <tbody>
+            {% for e in top_events %}
+            <tr>
+              <td>{{ e.ticket_type__event__name }}</td>
+              <td>{{ e.total_tickets }}</td>
+              <td><strong>${{ e.total_revenue|floatformat:2 }}</strong></td>
+            </tr>
+            {% empty %}
+            <tr><td colspan="3" class="text-muted text-center py-3">Sin datos</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const ticketLabels = {{ chart_labels|safe }};
+const ticketData = {{ chart_ticket_data|safe }};
+const barLabels = {{ bar_labels|safe }};
+const barData = {{ chart_bar_data|safe }};
+
+new Chart(document.getElementById('ticketsChart'), {
+  type: 'bar',
+  data: {
+    labels: ticketLabels,
+    datasets: [{ label: 'Ventas ($)', data: ticketData, backgroundColor: 'rgba(13,110,253,0.7)' }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } } }
+});
+
+new Chart(document.getElementById('barChart'), {
+  type: 'bar',
+  data: {
+    labels: barLabels,
+    datasets: [{ label: 'Ventas ($)', data: barData, backgroundColor: 'rgba(25,135,84,0.7)' }]
+  },
+  options: { responsive: true, plugins: { legend: { display: false } } }
+});
+</script>
+{% endblock %}

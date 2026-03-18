@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% block title %}Entradas Vendidas{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+  <h1><i class="bi bi-list-ul"></i> Entradas Vendidas</h1>
+  <a href="{% url 'tickets:admin_list' %}" class="btn btn-outline-secondary">
+    <i class="bi bi-arrow-left"></i> Eventos
+  </a>
+</div>
+
+<div class="card">
+  <div class="table-responsive">
+    <table class="table table-hover mb-0">
+      <thead class="table-dark">
+        <tr>
+          <th>Código</th><th>Evento</th><th>Tipo</th><th>Comprador</th>
+          <th>Cant.</th><th>Total</th><th>Estado</th><th>Fecha</th><th></th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for t in tickets %}
+        <tr>
+          <td><small><code>{{ t.code|truncatechars:12 }}</code></small></td>
+          <td>{{ t.ticket_type.event.name }}</td>
+          <td>{{ t.ticket_type.name }}</td>
+          <td>{{ t.buyer_name }}<br><small class="text-muted">{{ t.buyer_email }}</small></td>
+          <td class="text-center">{{ t.quantity }}</td>
+          <td><strong>${{ t.total }}</strong></td>
+          <td>
+            {% if t.status == 'confirmed' %}<span class="badge bg-success">Confirmada</span>
+            {% elif t.status == 'used' %}<span class="badge bg-secondary">Usada</span>
+            {% elif t.status == 'cancelled' %}<span class="badge bg-danger">Cancelada</span>
+            {% else %}<span class="badge bg-warning">Pendiente</span>{% endif %}
+          </td>
+          <td><small>{{ t.created_at|date:"d/m/Y H:i" }}</small></td>
+          <td>
+            {% if t.status == 'confirmed' %}
+            <a href="{% url 'tickets:mark_used' t.pk %}" class="btn btn-sm btn-outline-secondary"
+               onclick="return confirm('¿Marcar como usada?')">
+              <i class="bi bi-check2"></i>
+            </a>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr><td colspan="9" class="text-center text-muted py-4">No hay entradas vendidas.</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

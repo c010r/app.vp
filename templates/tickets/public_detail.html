@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% block title %}{{ event.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+  <a href="{% url 'tickets:public_list' %}" class="btn btn-outline-secondary btn-sm mb-4">
+    <i class="bi bi-arrow-left"></i> Volver a eventos
+  </a>
+
+  <div class="row g-4">
+    <div class="col-md-7">
+      {% if event.image %}
+      <img src="{{ event.image.url }}" class="img-fluid rounded shadow mb-3" alt="{{ event.name }}">
+      {% else %}
+      <div class="rounded d-flex align-items-center justify-content-center mb-3" style="height:250px;background:linear-gradient(135deg,#1a1a2e,#16213e);">
+        <i class="bi bi-music-note-beamed text-white" style="font-size:5rem;opacity:.4;"></i>
+      </div>
+      {% endif %}
+      <h1 class="fw-bold">{{ event.name }}</h1>
+      <p class="text-muted fs-5">
+        <i class="bi bi-calendar3"></i> {{ event.date|date:"d/m/Y \a \l\a\s H:i" }} hs &nbsp;|&nbsp;
+        <i class="bi bi-geo-alt"></i> {{ event.venue }}
+      </p>
+      {% if event.description %}
+      <p class="lead">{{ event.description }}</p>
+      {% endif %}
+    </div>
+
+    <div class="col-md-5">
+      <div class="card shadow sticky-top" style="top:80px;">
+        <div class="card-header bg-dark text-white">
+          <h5 class="mb-0"><i class="bi bi-ticket"></i> Entradas disponibles</h5>
+        </div>
+        <div class="card-body">
+          {% for tt in ticket_types %}
+          <div class="border rounded p-3 mb-3 {% if tt.is_sold_out %}bg-light{% endif %}">
+            <div class="d-flex justify-content-between align-items-start">
+              <div>
+                <h6 class="fw-bold mb-1">{{ tt.name }}</h6>
+                <span class="text-success fs-4 fw-bold">${{ tt.price }}</span>
+              </div>
+              <div class="text-end">
+                {% if tt.is_sold_out %}
+                  <span class="badge bg-danger fs-6">AGOTADO</span>
+                {% else %}
+                  <small class="text-muted d-block">{{ tt.available }} disponibles</small>
+                  {% if user.is_authenticated %}
+                    <a href="{% url 'tickets:purchase' tt.pk %}" class="btn btn-primary mt-2">
+                      <i class="bi bi-cart-plus"></i> Comprar
+                    </a>
+                  {% else %}
+                    <a href="{% url 'accounts:login' %}?next={% url 'tickets:purchase' tt.pk %}" class="btn btn-outline-primary mt-2">
+                      <i class="bi bi-box-arrow-in-right"></i> Ingresar para comprar
+                    </a>
+                  {% endif %}
+                {% endif %}
+              </div>
+            </div>
+          </div>
+          {% empty %}
+          <p class="text-muted">No hay entradas disponibles para este evento.</p>
+          {% endfor %}
+
+          {% if not user.is_authenticated %}
+          <div class="alert alert-info mt-3 mb-0 small">
+            <i class="bi bi-info-circle"></i>
+            <a href="{% url 'accounts:register' %}">Crea tu cuenta gratis</a> para comprar entradas.
+          </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

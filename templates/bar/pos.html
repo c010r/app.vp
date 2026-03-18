@@ -1,0 +1,232 @@
+{% extends 'base.html' %}
+{% block title %}POS — {{ session.register }}{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h1><i class="bi bi-cart"></i> POS — {{ session.register.name }}</h1>
+  <div>
+    <span class="badge bg-success fs-6 me-2">Ventas: ${{ session.total_sales }}</span>
+    <a href="{% url 'bar:close_session' session.pk %}" class="btn btn-outline-danger btn-sm">
+      <i class="bi bi-lock"></i> Cerrar caja
+    </a>
+  </div>
+</div>
+
+<div class="row g-3">
+  <!-- Productos -->
+  <div class="col-lg-8">
+    <div class="card">
+      <div class="card-header">
+        <input type="text" id="searchProduct" class="form-control" placeholder="Buscar producto...">
+      </div>
+      <div class="card-body" style="max-height:60vh;overflow-y:auto;">
+        {% for category in categories %}
+        {% if category.barproduct_set.filter %}
+        <h6 class="text-muted border-bottom pb-1 mt-2">{{ category.name }}</h6>
+        <div class="row g-2 mb-2">
+          {% for product in products %}
+          {% if product.category == category %}
+          <div class="col-6 col-md-4 col-lg-3 product-item" data-name="{{ product.name|lower }}">
+            <button class="btn btn-outline-secondary w-100 h-100 text-start add-to-cart"
+              data-id="{{ product.pk }}" data-name="{{ product.name }}"
+              data-price="{{ product.price }}" data-stock="{{ product.stock }}">
+              <div class="fw-bold small">{{ product.name }}</div>
+              <div class="text-success">${{ product.price }}</div>
+              <div class="text-muted" style="font-size:.75rem;">Stock: {{ product.stock }}</div>
+            </button>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+        {% endif %}
+        {% endfor %}
+
+        <!-- Sin categoría -->
+        <div class="row g-2">
+          {% for product in products %}
+          {% if not product.category %}
+          <div class="col-6 col-md-4 col-lg-3 product-item" data-name="{{ product.name|lower }}">
+            <button class="btn btn-outline-secondary w-100 h-100 text-start add-to-cart"
+              data-id="{{ product.pk }}" data-name="{{ product.name }}"
+              data-price="{{ product.price }}" data-stock="{{ product.stock }}">
+              <div class="fw-bold small">{{ product.name }}</div>
+              <div class="text-success">${{ product.price }}</div>
+              <div class="text-muted" style="font-size:.75rem;">Stock: {{ product.stock }}</div>
+            </button>
+          </div>
+          {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Carrito -->
+  <div class="col-lg-4">
+    <div class="card h-100">
+      <div class="card-header bg-dark text-white d-flex justify-content-between">
+        <span><i class="bi bi-cart3"></i> Pedido</span>
+        <button class="btn btn-sm btn-outline-light" id="clearCart">
+          <i class="bi bi-trash"></i>
+        </button>
+      </div>
+      <div class="card-body p-0">
+        <div id="cartItems" style="max-height:40vh;overflow-y:auto;">
+          <p class="text-muted text-center py-4" id="emptyCart">Agregá productos</p>
+        </div>
+      </div>
+      <div class="card-footer">
+        <div class="d-flex justify-content-between fs-5 fw-bold mb-2">
+          <span>Total:</span>
+          <span class="text-success" id="cartTotal">$0.00</span>
+        </div>
+        <select class="form-select mb-2" id="paymentMethod">
+          <option value="efectivo">Efectivo</option>
+          <option value="debito">Débito</option>
+          <option value="credito">Crédito</option>
+          <option value="transferencia">Transferencia</option>
+        </select>
+        <button class="btn btn-success w-100 btn-lg" id="confirmSale">
+          <i class="bi bi-check-circle"></i> Confirmar venta
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Ventas recientes -->
+{% if recent_sales %}
+<div class="mt-4">
+  <h5>Ventas recientes</h5>
+  <div class="table-responsive">
+    <table class="table table-sm table-striped">
+      <thead><tr><th>#</th><th>Total</th><th>Pago</th><th>Hora</th></tr></thead>
+      <tbody>
+        {% for s in recent_sales %}
+        <tr>
+          <td>{{ s.pk }}</td>
+          <td><strong>${{ s.total }}</strong></td>
+          <td>{{ s.get_payment_method_display }}</td>
+          <td>{{ s.created_at|date:"H:i" }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const SESSION_PK = {{ session.pk }};
+const CSRF_TOKEN = '{{ csrf_token }}';
+let cart = {};
+
+function updateCartUI() {
+  const container = document.getElementById('cartItems');
+  const emptyMsg = document.getElementById('emptyCart');
+  const totalEl = document.getElementById('cartTotal');
+  const items = Object.values(cart);
+
+  if (items.length === 0) {
+    container.innerHTML = '<p class="text-muted text-center py-4" id="emptyCart">Agregá productos</p>';
+    totalEl.textContent = '$0.00';
+    return;
+  }
+
+  let total = 0;
+  let html = '';
+  for (const item of items) {
+    const sub = item.price * item.qty;
+    total += sub;
+    html += `
+      <div class="d-flex align-items-center border-bottom px-2 py-1">
+        <div class="flex-grow-1 small">
+          <div class="fw-bold">${item.name}</div>
+          <div class="text-muted">$${item.price} x ${item.qty}</div>
+        </div>
+        <div class="fw-bold text-success me-2">$${sub.toFixed(2)}</div>
+        <div class="btn-group btn-group-sm">
+          <button class="btn btn-outline-secondary" onclick="changeQty(${item.id}, -1)">-</button>
+          <button class="btn btn-outline-secondary" onclick="changeQty(${item.id}, 1)">+</button>
+          <button class="btn btn-outline-danger" onclick="removeItem(${item.id})">
+            <i class="bi bi-x"></i>
+          </button>
+        </div>
+      </div>`;
+  }
+  container.innerHTML = html;
+  totalEl.textContent = '$' + total.toFixed(2);
+}
+
+function changeQty(id, delta) {
+  if (!cart[id]) return;
+  cart[id].qty += delta;
+  if (cart[id].qty <= 0) delete cart[id];
+  updateCartUI();
+}
+
+function removeItem(id) {
+  delete cart[id];
+  updateCartUI();
+}
+
+document.querySelectorAll('.add-to-cart').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const id = btn.dataset.id;
+    const name = btn.dataset.name;
+    const price = parseFloat(btn.dataset.price);
+    const stock = parseInt(btn.dataset.stock);
+    if (cart[id]) {
+      if (cart[id].qty >= stock) { alert('Stock insuficiente'); return; }
+      cart[id].qty++;
+    } else {
+      cart[id] = { id, name, price, qty: 1 };
+    }
+    updateCartUI();
+  });
+});
+
+document.getElementById('clearCart').addEventListener('click', () => {
+  cart = {};
+  updateCartUI();
+});
+
+document.getElementById('confirmSale').addEventListener('click', async () => {
+  const items = Object.values(cart);
+  if (items.length === 0) { alert('El carrito está vacío.'); return; }
+
+  const payload = {
+    items: items.map(i => ({ product_id: i.id, quantity: i.qty })),
+    payment_method: document.getElementById('paymentMethod').value,
+  };
+
+  try {
+    const res = await fetch(`/bar/sesion/${SESSION_PK}/venta/`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+      body: JSON.stringify(payload),
+    });
+    const data = await res.json();
+    if (data.success) {
+      cart = {};
+      updateCartUI();
+      alert(`✓ Venta registrada. Total: $${data.total}`);
+      location.reload();
+    } else {
+      alert('Error: ' + data.error);
+    }
+  } catch (e) {
+    alert('Error de conexión.');
+  }
+});
+
+document.getElementById('searchProduct').addEventListener('input', function() {
+  const q = this.value.toLowerCase();
+  document.querySelectorAll('.product-item').forEach(el => {
+    el.style.display = el.dataset.name.includes(q) ? '' : 'none';
+  });
+});
+</script>
+{% endblock %}

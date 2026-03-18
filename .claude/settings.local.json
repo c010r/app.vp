@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip --version)",
+      "Bash(py --version)",
+      "Bash(py -3 --version)",
+      "Bash(where python:*)",
+      "Bash(where python3:*)",
+      "Bash(where py:*)",
+      "Bash(ls /c/Python*)",
+      "Read(//c/Users/avale/AppData/Local/Programs/**)",
+      "Read(//c/Users/avale/**)",
+      "Bash(conda --version)",
+      "Bash(where conda:*)",
+      "Read(//c/ProgramData/miniconda3/**)",
+      "Bash(cmd /c \"where python\")",
+      "Bash(cmd /c \"python --version\")",
+      "Bash(powershell -Command \"Get-Command python -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source; Get-Command py -ErrorAction SilentlyContinue | Select-Object -ExpandProperty Source\")",
+      "Bash(powershell -Command \"Get-ChildItem ''C:\\\\'' -Recurse -Filter ''python.exe'' -ErrorAction SilentlyContinue | Where-Object { $_.FullName -notlike ''*WindowsApps*'' } | Select-Object -First 5 -ExpandProperty FullName\")",
+      "Bash(\"/c/Users/avale/AppData/Roaming/uv/python/cpython-3.12-windows-x86_64-none/python.exe\" --version)",
+      "Bash(PYTHON=\"/c/Users/avale/AppData/Roaming/uv/python/cpython-3.12-windows-x86_64-none/python.exe\")",
+      "Bash(\"$PYTHON\" -m venv .venv)",
+      "Bash(.venv/Scripts/python.exe --version)",
+      "Bash(.venv/Scripts/pip.exe install:*)",
+      "Bash(.venv/Scripts/python.exe manage.py makemigrations)",
+      "Bash(.venv/Scripts/python.exe manage.py makemigrations accounts tickets bar inventory reports)",
+      "Bash(.venv/Scripts/python.exe manage.py migrate)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/)",
+      "Bash(.venv/Scripts/python.exe manage.py runserver 8000)",
+      "Bash(netstat -ano)",
+      "Read(//c/Devs/app.vp/**)",
+      "Bash(taskkill //F //PID 22480 //PID 247488 //PID 252484)",
+      "Bash(taskkill //F //PID 246416 //PID 253588)",
+      "Bash(.venv/Scripts/python.exe manage.py makemigrations tickets)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/accounts/registro/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/mis-entradas/)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://127.0.0.1:8000/accounts/login/)",
+      "Bash(git config:*)",
+      "Bash(ssh -T git@github.com)",
+      "Bash(echo \"EXIT:$?\")"
+    ]
+  }
+}
