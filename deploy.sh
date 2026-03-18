@@ -38,4 +38,4 @@ systemctl is-active --quiet app-vp && \
     { echo "ERROR: el servicio no levanto."; journalctl -u app-vp -n 20 --no-pager; exit 1; }
 
 echo ""
-echo "Despliegue completado — https://app.patioviejo.fun"
+echo "Despliegue completado — https://app.patioviejo.click"

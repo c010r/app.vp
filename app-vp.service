@@ -1,5 +1,5 @@
 [Unit]
-Description=App VP — Django (app.patioviejo.fun)
+Description=App VP — Django (app.patioviejo.click)
 After=network.target postgresql.service
 
 [Service]

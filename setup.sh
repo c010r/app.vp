@@ -7,7 +7,7 @@
 
 set -e
 
-DOMAIN="app.patioviejo.fun"
+DOMAIN="app.patioviejo.click"
 APP_DIR="/var/www/app-vp"
 REPO="https://github.com/c010r/app.vp.git"
 APP_USER="appvp"
@@ -122,7 +122,7 @@ nginx -t && systemctl reload nginx
 
 echo ""
 echo "Obteniendo certificado SSL con Certbot..."
-certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m admin@patioviejo.fun || \
+certbot --nginx -d "$DOMAIN" --non-interactive --agree-tos -m admin@patioviejo.click || \
     echo "Certbot fallo. Podes ejecutarlo despues: certbot --nginx -d $DOMAIN"
 
 echo ""
