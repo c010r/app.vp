@@ -1,17 +1,10 @@
-# Archivo systemd para produccion
-# Copiar a: /etc/systemd/system/app-vp.service
-# Activar con:
-#   sudo systemctl daemon-reload
-#   sudo systemctl enable app-vp
-#   sudo systemctl start app-vp
-
 [Unit]
-Description=App VP — Django
+Description=App VP — Django (app.patioviejo.fun)
 After=network.target postgresql.service
 
 [Service]
-User=www-data
-Group=www-data
+User=appvp
+Group=appvp
 WorkingDirectory=/var/www/app-vp
 EnvironmentFile=/var/www/app-vp/.env
 Environment=DJANGO_SETTINGS_MODULE=config.settings.prod
@@ -23,6 +16,9 @@ ExecStart=/var/www/app-vp/.venv/bin/gunicorn \
     --access-logfile /var/log/app-vp/access.log \
     --error-logfile /var/log/app-vp/error.log
 ExecReload=/bin/kill -s HUP $MAINPID
+KillMode=mixed
+TimeoutStopSec=5
+PrivateTmp=true
 Restart=on-failure
 
 [Install]
